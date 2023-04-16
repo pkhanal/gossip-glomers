@@ -1,4 +1,5 @@
 use std::io;
+use anyhow::Result;
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -25,13 +26,25 @@ enum TypeAwarePayload {
         node_id: String,
         node_ids: Vec<String>,
     },
+    Echo {
+        echo: String,
+    },
 }
 
-fn main() {
+fn main() -> Result<()> {
     let mut lines = io::stdin().lines();
     let mut stdout = std::io::stdout().lock();
 
     let initialization_message = lines.next().unwrap().unwrap();
     let init_message:Message = serde_json::from_str(&initialization_message).unwrap();
+
+    // TODO: check if first message is of type init or not and fail fast
+
+    if !matches!(init_message.body.payload, TypeAwarePayload::Init { .. }) {
+        panic!("First message should be init message");
+    }
+
     println!("{:?}", init_message);
+
+    Ok(())
 }
